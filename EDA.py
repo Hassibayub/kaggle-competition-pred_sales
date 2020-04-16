@@ -23,74 +23,152 @@ def clean_strings(val):
 files = [file for file in os.listdir("./") if file[-3:] == "csv"]
 print(files)
 
-############################################# Shops.csv
+# ############################################# Shops.csv
 
-shops = pd.read_csv("./shops.csv")
+# shops = pd.read_csv("./shops.csv")
 
-print(shops.head())
-print(shops.shape)
+# print(shops.head())
+# print(shops.shape)
 
-# check any duplicates
+# # check any duplicates
 
-print(shops.shape[0] == shops.nunique()) #true, no duplicate so far
+# print(shops.shape[0] == shops.nunique()) #true, no duplicate so far
 
-# Manual explorations
+# # Manual explorations
 
-print(shops['shop_name'])
-print(len(shops['shop_name']), len(set(shops['shop_name']))) #no name is duplicated
-print(shops.duplicated('shop_name').unique())
+# print(shops['shop_name'])
+# print(len(shops['shop_name']), len(set(shops['shop_name']))) #no name is duplicated
+# print(shops.duplicated('shop_name').unique())
 
-groupbySize = shops.groupby('shop_id').size()
-print(groupbySize)
+# groupbySize = shops.groupby('shop_id').size()
+# print(groupbySize)
 
-print(shops.isnull().sum()) # no null
-
-
-print(shops.sample(15))
-
-###### Cleaning Shop names 
-
-clean_shop_names = shops['shop_name'].apply(clean_strings)
-print(clean_shop_names)
-
-shops = shops.join(clean_shop_names, on=['shop_id'], rsuffix="_clean")
+# print(shops.isnull().sum()) # no null
 
 
-############################# Items_category.csv
-items_cat = pd.read_csv("./item_categories.csv")
-print(items_cat.shape)
+# print(shops.sample(15))
 
-print(items_cat.head(), "\n\n")
-print(items_cat.sample(10))
+# ###### Cleaning Shop names 
 
-print ("\n\n\n")
+# clean_shop_names = shops['shop_name'].apply(clean_strings)
+# print(clean_shop_names)
 
-print(items_cat.info(), "\n\n")
-print(items_cat.describe())
-
-#### duplicates?
-
-print(items_cat.shape[0] == items_cat.nunique()) # no duplicates
+# shops = shops.join(clean_shop_names, on=['shop_id'], rsuffix="_clean")
 
 
-pd.set_option("display.max_rows", items_cat.shape[0])
-print(items_cat)
+# ############################# Items_category.csv
+# items_cat = pd.read_csv("./item_categories.csv")
+# print(items_cat.shape)
 
-################# items.csv
+# print(items_cat.head(), "\n\n")
+# print(items_cat.sample(10))
 
-items = pd.read_csv("./items.csv")
+# print ("\n\n\n")
 
-print(items.shape)
+# print(items_cat.info(), "\n\n")
+# print(items_cat.describe())
 
-print(items.head(), "\n\n" )
-print(items.sample(10), "\n\n")
+# #### duplicates?
 
-print(items.describe(), "\n\n")
-print(items.info(), "\n\n")
+# print(items_cat.shape[0] == items_cat.nunique()) # no duplicates
 
 
-## find duplicated?
+# pd.set_option("display.max_rows", items_cat.shape[0])
+# print(items_cat)
 
-print(len(items['item_name']) == len(items['item_name'])) # no duplicates?
+# ################# items.csv
 
-print(items['item_name'].duplicated().unique()) #no duplicates
+# items = pd.read_csv("./items.csv")
+
+# print(items.shape)
+
+# print(items.head(), "\n\n" )
+# print(items.sample(10), "\n\n")
+
+# print(items.describe(), "\n\n")
+# print(items.info(), "\n\n")
+
+
+# ## find duplicated?
+
+# print(len(items['item_name']) == len(items['item_name'])) # no duplicates?
+
+# print(items['item_name'].duplicated().unique()) #no duplicates
+
+
+####### Sales
+sales = pd.read_csv("./sales_train.csv")
+
+# print(sales.shape)
+
+# print("\n\n")
+
+# print(sales.head())
+
+# print("\n\n")
+
+# print(sales.describe())
+
+# print("\n\n")
+
+# print(sales.info())
+
+
+print("\n\n")
+
+# print(sales['date_block_num'].unique(), sales['date_block_num'].nunique())
+# print(sales['item_cnt_day'].unique(), sales['item_cnt_day'].nunique())
+
+#### nulls?
+
+# print(sales.isnull().sum(axis=0).sum()) # no null? strange!!!
+
+# no_itemPrice = sales['item_price'] <= 0
+
+# print(sales[no_itemPrice]) #only item with -1.0 price. there must be some other mistakes also. Can be found in VIZ
+
+
+
+
+train = pd.read_csv("./sales_train.csv", parse_dates=['date'])
+
+# print(train.head())
+
+months = train['date'].dt.month
+
+# sns.distplot(train['item_cnt_day'])
+
+# plt.show()
+
+
+print(train[['date','item_cnt_day']].set_index('date').resample("M").sum())
+
+
+train[['date', 'item_cnt_day']].set_index('date').resample("M").sum().plot()
+plt.legend()
+
+print(train[['date', 'item_cnt_day']].set_index('date').resample("M").sum().index.max())
+print(train[['date', 'item_cnt_day']].set_index('date').resample("M").sum().index.min())
+
+### oneblock
+
+dateBlock0 = train['date_block_num'].isin([0])
+train[dateBlock0].set_index('date').resample("M").sum()['item_cnt_day'].plot()
+plt.legend()
+
+
+### all dateblock plots
+
+dateBlocks = train['date_block_num'].unique()
+for (i,dateBlock) in enumerate(dateBlocks): 
+
+	print(dateBlock)
+	block = train['date_block_num'].isin([dateBlock])
+	plt.title(f"{dateBlock}_MONTH_SUM_sampled")
+	train[block].set_index('date').resample("M").sum()['item_cnt_day'].plot()
+
+	if (i%4==0 and i!= 0): 
+		plt.show()
+		plt.legend()
+
+# plt.show()
