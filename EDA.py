@@ -171,4 +171,8 @@ for (i,dateBlock) in enumerate(dateBlocks):
 		plt.show()
 		plt.legend()
 
-# plt.show()
+plt.show()
+
+sns.heatmap(train)
+
+plt.show()
